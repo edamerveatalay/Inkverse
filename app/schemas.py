@@ -1,13 +1,24 @@
-from pydantic import BaseModel 
+from pydantic import BaseModel
 
-class UserCreate (BaseModel):
+
+class UserCreate(BaseModel):
     email: str
-    password: str 
+    password: str
 
 
-class UserRead (BaseModel) : #kullanıcıya gösterilecek kısım hashed_password yok çünkü güvenlik için gizli 
-    id : int
-    email : str
+class UserRead(BaseModel):
+    id: int
+    email: str
 
-    class Config:  # <-- Config UserRead modelinin içinde olmalı
+    class Config:
         from_attributes = True
+
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
