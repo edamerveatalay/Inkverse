@@ -1,16 +1,15 @@
-from app.models import User
+# app/main.py
 from fastapi import FastAPI
-from app.routers.routers import router
-from app.database import engine  # ← burayı ekle
+from app.database import engine
 from sqlmodel import SQLModel
+from app.routers.routers import router  # routers klasöründeki ana router
 
+app = FastAPI(title="Inkverse API")
 
-app = FastAPI()
-app.include_router(router, prefix="/users", tags=["Users"])
-#include_router → FastAPI’ye diyoruz ki: “Bu dosyada tanımladığım endpoint’leri de uygulamaya ekle.”
-#prefix="/users" → Bütün bu router’daki URL’ler /users/... ile başlasın.
-#tags=["users"] → Swagger dokümanında bu endpoint’leri “users” etiketi altında toplasın.
+# Tüm router’ları projeye ekliyoruz
+app.include_router(router)
 
+#  Veritabanı tabloları uygulama başlarken oluşturulacak
 @app.on_event("startup")
 async def on_startup():
     async with engine.begin() as conn:
