@@ -6,6 +6,13 @@ from app.schemas.schemas_user import UserCreate, UserRead, UserLogin, Token
 from app.cruds.user_crud import create_user, get_all_users, get_user_by_email
 from app.utils import verify_password, create_access_token
 from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from sqlalchemy import select
+from app.models.models_user import User
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
 
 
 # GET işlemleri için router. Sign up kısmının
@@ -50,3 +57,42 @@ async def signin_endpoint(
     access_token = create_access_token({"sub": user.email})
 
     return Token(access_token=access_token, token_type="bearer")
+
+
+SECRET_KEY = "super_secret_key"
+ALGORITHM = "HS256"
+
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)
+):
+    try:
+        # Token’ı çöz (decode)
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+
+        if email is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+            )
+
+    except JWTError:
+        # Token bozuk veya süresi dolmuşsa
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+
+    # Veritabanında kullanıcıyı bul
+    result = await session.execute(select(User).where(User.email == email))
+    user = result.scalars().first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    # Kullanıcıyı döndür (current_user olarak)
+    return user
