@@ -2,6 +2,7 @@ from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime  # ← bunu eklemelisin
 from app.models.models_user import User
+from sqlmodel import Relationship
 
 
 class Blog(SQLModel, table=True):
