@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas import UserCreate, UserRead  # Şema modellerin
-from app.models import User  # Eğer User tablon varsa
+from app.schemas.schemas_user import UserCreate, UserRead  # Şema modellerin
+from app.models.models_user import User  # Eğer User tablon varsa
 from sqlalchemy import select
 
 
