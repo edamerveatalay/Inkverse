@@ -5,6 +5,7 @@ from app.database import get_session
 from app.schemas import UserCreate, UserRead, UserLogin, Token
 from app.crud import create_user, get_all_users, get_user_by_email
 from app.utils import verify_password, create_access_token
+from fastapi import HTTPException
 
 
 # GET işlemleri için router. Sign up kısmının
