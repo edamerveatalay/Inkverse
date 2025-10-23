@@ -5,7 +5,12 @@ from app.database import get_session
 from app.schemas.schemas_blog import BlogCreate, BlogRead, BlogUpdate
 from fastapi import Depends
 from app.routers.auth import get_current_user
-from app.cruds.blog_crud import create_blog_crud, get_all_blogs, update_blog
+from app.cruds.blog_crud import (
+    create_blog_crud,
+    get_all_blogs,
+    update_blog,
+    get_my_blogs,
+)
 from fastapi import status
 
 router = APIRouter(prefix="/blog", tags=["Blogs"])
@@ -48,3 +53,11 @@ async def update_blog_endpoint(
 # Endpoint bu verileri CRUD fonksiyonuna geçirir
 # CRUD fonksiyonu veritabanında gerekli güncellemeyi yapar ve sonucu döndürür
 # Endpoint sonucu client’a geri yollar
+
+
+@router.get("/my_blogs", response_model=list[BlogRead])
+async def my_blogs(
+    session: AsyncSession = Depends(get_session), current_user=Depends(get_current_user)
+):
+    my_blogs_get = await get_my_blogs(session, user_id=current_user.id)
+    return my_blogs_get
