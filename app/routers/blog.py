@@ -10,6 +10,7 @@ from app.cruds.blog_crud import (
     get_all_blogs,
     update_blog,
     get_my_blogs,
+    delete_blog,
 )
 from fastapi import status
 
@@ -61,3 +62,13 @@ async def my_blogs(
 ):
     my_blogs_get = await get_my_blogs(session, user_id=current_user.id)
     return my_blogs_get
+
+
+@router.delete("/{blog_id}", response_model=BlogRead)
+async def delete_blog_endpoint(
+    blog_id: int,
+    session: AsyncSession = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    deleted_blog = await delete_blog(session, user_id=current_user.id, blog_id=blog_id)
+    return deleted_blog

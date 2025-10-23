@@ -60,3 +60,23 @@ async def get_my_blogs(session: AsyncSession, user_id: int):
     result = await session.execute(select(Blog).where(Blog.user_id == user_id))
     blogs = result.scalars().all()
     return blogs
+
+
+async def delete_blog(session: AsyncSession, user_id: int, blog_id: int):
+    result = await session.execute(select(Blog).where(Blog.id == blog_id))
+    blog = result.scalars().first()
+    if blog is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Blog with id {blog_id} not found",
+        )
+    if blog.user_id != user_id:
+        # Bu blogu silmek isteyen kullanıcının (user_id) kimliği, blogun sahibinin (blog.user_id) kimliğiyle aynı mı diye kontrol
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to delete this blog",
+        )
+
+    await session.delete(blog)
+    await session.commit()
+    return blog
