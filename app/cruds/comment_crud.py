@@ -59,7 +59,7 @@ async def delete_comment(
     return comment
 
 
-async def update_comment(
+async def update_comment_crud(
     session: AsyncSession, comment_id: int, user_id: int, comment_update: CommentUpdate
 ):
     result = await session.execute(select(Comment).where(Comment.id == comment_id))
