@@ -30,8 +30,8 @@ async def create_comment_crud(
 
 async def get_comments_by_blog(session: AsyncSession, blog_id: int):
     result = await session.execute(select(Comment).where(Comment.blog_id == blog_id))
-    result.scalars().all()
-    return list
+    comments = result.scalars().all()
+    return comments
 
 
 async def delete_comment(
