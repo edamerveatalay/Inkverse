@@ -26,3 +26,34 @@ async def create_comment_crud(
     await session.commit()
     await session.refresh(comment)
     return comment
+
+
+async def get_comments_by_blog(session: AsyncSession, blog_id: int):
+    result = await session.execute(select(Comment).where(Comment.blog_id == blog_id))
+    result.scalars().all()
+    return list
+
+
+async def delete_comment(
+    session: AsyncSession, comment_id: int, user_id: int
+):  # yorumun id'si olduğu için nereye yazıldığı belli blog_id'ye gerek yok
+    result = await session.execute(select(Comment).where(Comment.id == comment_id))
+    # yorumun id'si ile veritabanındaki tablodaki yorum id'si eşleşiyor mu diye kontrol ediyoruz
+    comment = result.scalars().first()
+
+    if comment is None:  # id boşsa veritabanında o id'de bir id bulunamadı demek
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Blog with id {comment_id} not found",
+        )
+    if (
+        comment.user_id != user_id
+    ):  # silinecek yorum şu anki kullanıcının mı diye kontrol ediyoruz. başkasının yorumunun silinmesi engelleniyor
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to delete this comment",
+        )
+
+    await session.delete(comment)
+    await session.commit()  # Commit ile değişiklik veritabanına uygulanır.
+    return comment
