@@ -1,6 +1,10 @@
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.cruds.comment_crud import create_comment_crud, get_comments_by_blog
+from app.cruds.comment_crud import (
+    create_comment_crud,
+    get_comments_by_blog,
+    update_comment_crud,
+)
 from app.database import get_session
 from app.routers import blog
 from app.routers.auth import get_current_user
@@ -33,3 +37,16 @@ async def get_comments_by_blog_endpoint(
 ):
     all_comment = await get_comments_by_blog(session)
     return all_comment
+
+
+@router.put("/", response_model=CommentRead)
+async def update_comment_endpoint(
+    comment_id: int,
+    comment_update: CommentUpdate,
+    session: AsyncSession = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    updated_comment = await update_comment_crud(
+        session, comment_id, comment_update, current_user.id
+    )
+    return updated_comment

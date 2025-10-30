@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime  # ← bunu eklemelisin
+from app.models.models_comment import Comment
 from app.models.models_user import User
 from sqlmodel import Relationship
 
@@ -15,6 +16,7 @@ class Blog(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     user_id: int = Field(foreign_key="user.id")
     author: Optional[User] = Relationship(back_populates="blogs")
+    comments: List["Comment"] = Relationship(back_populates="blog")
 
 
 User.blogs = Relationship(back_populates="author")

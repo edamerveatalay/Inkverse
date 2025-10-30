@@ -13,7 +13,7 @@ class Comment(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     user_id: int = Field(foreign_key="user.id")  # iki tablo arasında bağlantı anahtarı
     blog_id: int = Field(foreign_key="blog.id")
-    author: Optional[User] = Relationship(
+    author: User = Relationship(
         back_populates="comments"
     )  # iki tablo arasında bağlantı kurar
     blog: Optional[Blog] = Relationship(back_populates="comments")
