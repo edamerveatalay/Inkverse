@@ -1,3 +1,4 @@
+from profile import Profile
 from typing import List, Optional, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 
@@ -17,5 +18,9 @@ class User(SQLModel, table=True):
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     comments: List["Comment"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+
+    profiles: Optional["Profile"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
