@@ -1,10 +1,12 @@
-from profile import Profile
 from fastapi import HTTPException
 from sqlalchemy import select
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import status
 
 
+from app.models.models_profile import Profile
+from app.models.models_user import User
 from app.schemas.schemas_profile import ProfileCreate, ProfileUpdate
 
 

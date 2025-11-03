@@ -10,7 +10,6 @@ class ProfileCreate(BaseModel):
 
 class ProfileRead(BaseModel):
     id: int
-    email: str
     bio: Optional[str] = None
     profile_image: Optional[str] = None
     website: Optional[str] = None

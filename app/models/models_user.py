@@ -1,10 +1,10 @@
-from profile import Profile
 from typing import List, Optional, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
     from .models_blog import Blog
     from .models_comment import Comment
+    from .models_profile import Profile
 
 
 class User(SQLModel, table=True):
@@ -24,3 +24,6 @@ class User(SQLModel, table=True):
     profiles: Optional["Profile"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
+
+
+from app.models.models_profile import Profile
