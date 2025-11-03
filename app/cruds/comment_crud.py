@@ -22,7 +22,7 @@ async def create_comment_crud(
             detail=f"Blog with id {blog_id} not found",
         )
     comment = Comment(content=comment_create.content, blog_id=blog_id, user_id=user_id)
-    await session.add()
+    session.add(comment)
     await session.commit()
     await session.refresh(comment)
     return comment
@@ -60,15 +60,15 @@ async def delete_comment(
 
 
 async def update_comment_crud(
-    session: AsyncSession, comment_id: int, user_id: int, comment_update: CommentUpdate
+    session: AsyncSession, comment_id: int, comment_update: CommentUpdate, user_id: int
 ):
     result = await session.execute(select(Comment).where(Comment.id == comment_id))
     comment = result.scalars().first()
 
-    if comment is None:  # id boşsa veritabanında o id'de bir id bulunamadı demek
+    if comment is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Blog with id {comment_id} not found",
+            detail=f"Comment with id {comment_id} not found",
         )
     if comment.user_id != user_id:
         raise HTTPException(
@@ -76,8 +76,8 @@ async def update_comment_crud(
             detail="You are not allowed to update this comment",
         )
 
-    session.add(comment)
     comment.content = comment_update.content
+    session.add(comment)
     await session.commit()
     await session.refresh(comment)
     return comment
