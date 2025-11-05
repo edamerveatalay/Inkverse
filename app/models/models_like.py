@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import Optional
-
+from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.models.models_blog import Blog
-from app.models.models_user import User
+if TYPE_CHECKING:
+    from app.models.models_blog import Blog
+    from app.models.models_user import User
 
 
 class Like(SQLModel, table=True):
@@ -15,5 +15,6 @@ class Like(SQLModel, table=True):
     blog_id: int = Field(foreign_key="blogs.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    # İlişkiler (string referans kullandık, import yapmadık)
     user: Optional["User"] = Relationship(back_populates="likes")
     blog: Optional["Blog"] = Relationship(back_populates="likes")

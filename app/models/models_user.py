@@ -5,6 +5,7 @@ if TYPE_CHECKING:
     from .models_blog import Blog
     from .models_comment import Comment
     from .models_profile import Profile
+    from .models_like import Like
 
 
 class User(SQLModel, table=True):
@@ -22,6 +23,10 @@ class User(SQLModel, table=True):
     )
 
     profiles: Optional["Profile"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+
+    likes: List["Like"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"}
     )
 

@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 
+from app.models.models_like import Like
+
 if TYPE_CHECKING:
     from .models_user import User
     from .models_comment import Comment
@@ -17,9 +19,12 @@ class Blog(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    # 🟢 ilişki tanımı
+    # ilişki tanımı
     user: Optional["User"] = Relationship(back_populates="blogs")
 
     comments: list["Comment"] = Relationship(
+        back_populates="blog", sa_relationship_kwargs={"cascade": "all, delete"}
+    )
+    likes: list["Like"] = Relationship(
         back_populates="blog", sa_relationship_kwargs={"cascade": "all, delete"}
     )
