@@ -4,6 +4,7 @@ from app.routers.auth import get_router, post_router, signin_router
 from app.routers.blog import router as blog_router
 from app.routers.comments import router as comment_router
 from app.routers.profile import router as profile_router
+from app.routers.like import router as like_router
 
 
 router = APIRouter()
@@ -16,3 +17,4 @@ router.include_router(signin_router)
 router.include_router(blog_router)
 router.include_router(comment_router)
 router.include_router(profile_router)
+router.include_router(like_router)
