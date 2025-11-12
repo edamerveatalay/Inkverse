@@ -21,30 +21,21 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # pwd_context sabit bir araçtır; uygulama başlarken bir kez tanımlanır, sonra her yerde kullanılır.
 
 
-async def create_user(
-    session: AsyncSession, user_data: UserCreate
-):  # usercreate sınıfından verileri aldık (email, password)
-    # artık verilere Burada user_data.email ve user_data.password şeklinde erişeceksin.
+async def create_user(session: AsyncSession, user_data: UserCreate):
     existing_user = await get_user_by_email(session, user_data.email)
-    # existing_user = “veritabanında zaten kayıtlı olan kullanıcı” anlamına geliyor.
-    # yani biz existing_user diye bi değişken tanımlayıp get_user_by_email fonksiyonunun çağrılmış halini de buna atadık
-    # veritabanında aynı e-posta adresine sahip bir kullanıcı zaten var mı? diye kontrol eder.
-    hashed_password = pwd_context.hash(user_data.password.encode("utf-8"))
-    # Kullanıcının girdiği şifreyi bcrypt ile şifreler (hashler).
-    new_user = User(email=user_data.email, hashed_password=hashed_password)
-    # create userse fonksiyonu içinde yazdığımız için değişkenleri de ona göre belirlemeliyiz yani user_email değil user.data_email
     if existing_user:
         raise ValueError("User already exists")
 
+    hashed_password = pwd_context.hash(user_data.password.encode("utf-8"))
+    new_user = User(
+        email=user_data.email,
+        hashed_password=hashed_password,
+        username=user_data.username,
+    )
+
     session.add(new_user)
-    # Bu satır, oluşturduğun new_user nesnesini veritabanına ekleme sırasına alır.
-    # Ama hemen eklemez — sadece “bu nesne veritabanına kaydedilecek” diye işaretler.
-
     await session.commit()
-
     await session.refresh(new_user)
-    # Gerçek kayıt, await session.commit() çağrıldığında gerçekleşir.
-    # Bu satır, new_user nesnesini veritabanındaki en güncel haliyle yeniden yükler.
     return new_user
 
 
