@@ -1,7 +1,9 @@
 # blog endpointleri burada olacak
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
+from app.models.models_blog import Blog
 from app.schemas.schemas_blog import BlogCreate, BlogRead, BlogUpdate
 from fastapi import Depends
 from app.routers.auth import get_current_user
@@ -72,3 +74,35 @@ async def delete_blog_endpoint(
 ):
     deleted_blog = await delete_blog(session, user_id=current_user.id, blog_id=blog_id)
     return deleted_blog
+
+
+@router.post("/", response_model=BlogRead, status_code=status.HTTP_201_CREATED)
+async def publish_blog(
+    blog_id: int,
+    session: AsyncSession = Depends(get_session),
+):
+    result = await session.execute(select(Blog).where(Blog.id == blog_id))
+    blog = result.scalars().first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog bulunamadı")
+    blog.is_published = True
+    await session.commit()
+    return {"message": "Blog yayınlandı", "blog_id": blog_id}
+
+
+@router.post("/draft", response_model=BlogRead, status_code=status.HTTP_201_CREATED)
+async def create_draft_blog(
+    blog: BlogCreate,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
+):
+    new_blog = Blog(
+        title=blog.title,
+        content=blog.content,
+        user_id=current_user.id,
+        is_published=False,  # Taslak olarak kaydediyoruz
+    )
+    session.add(new_blog)
+    await session.commit()
+    await session.refresh(new_blog)
+    return new_blog

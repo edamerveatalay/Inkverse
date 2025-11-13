@@ -19,6 +19,8 @@ class Blog(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+    is_published: bool = Field(default=False)
+
     # ilişki tanımı
     user: Optional["User"] = Relationship(back_populates="blogs")
 

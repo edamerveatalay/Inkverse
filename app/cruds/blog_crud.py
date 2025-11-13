@@ -15,6 +15,7 @@ async def create_blog_crud(
         title=blog_create.title,
         user_id=user_id,  # hangi kullanıcıya ait olduğunu belirttik
         content=blog_create.content,
+        is_published=False,
     )  # fonksiyonumuzun parametrelerini tanımladık
 
     session.add(blog)
