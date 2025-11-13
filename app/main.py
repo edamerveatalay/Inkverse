@@ -25,6 +25,11 @@ async def on_startup():
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "OK"}
+
+
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
