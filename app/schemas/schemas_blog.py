@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -23,3 +24,4 @@ class BlogRead(BaseModel):
 class BlogUpdate(BaseModel):  # blog güncellerken değiştirilecek alanlar
     title: str
     content: str
+    is_published: Optional[bool] = None

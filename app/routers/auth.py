@@ -66,33 +66,34 @@ ALGORITHM = "HS256"
 async def get_current_user(
     token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)
 ):
+    print(f"[DEBUG] Token geldi: {token}")  # ← Token backend’e geliyor mu kontrol
     try:
-        # Token’ı çöz (decode)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
+        print(f"[DEBUG] Token payload: {payload}")  # ← Payload doğru mu kontrol
 
+        email: str = payload.get("sub")
         if email is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
             )
 
-    except JWTError:
-        # Token bozuk veya süresi dolmuşsa
+    except JWTError as e:
+        print(f"[DEBUG] JWT hatası: {e}")  # ← JWT hatası varsa yazdır
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
 
-    # Veritabanında kullanıcıyı bul
     result = await session.execute(select(User).where(User.email == email))
     user = result.scalars().first()
 
     if user is None:
+        print("[DEBUG] Kullanıcı bulunamadı")  # ← kullanıcı yoksa yazdır
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
 
-    # Kullanıcıyı döndür (current_user olarak)
+    print(f"[DEBUG] Kullanıcı bulundu: {user.email}")  # ← kullanıcı bulunduysa yazdır
     return user

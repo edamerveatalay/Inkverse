@@ -26,7 +26,7 @@ async def create_blog_crud(
 
 async def get_all_blogs(session: AsyncSession):
     # veri almıyor yalnızca veri okuyor o yüzden veritabanı bağlantısı yeterli
-    result = await session.execute(select(Blog))
+    result = await session.execute(select(Blog).where(Blog.is_published == True))
     # veritabanına SELECT * FROM blog komutunu gönder ve sonucu al
     blogs = result.scalars().all()  # Tüm blog nesnelerini al
     return blogs
@@ -48,10 +48,25 @@ async def update_blog(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Blog with id {blog_id} not found",
         )
+
+    # Yetki kontrolü (
+    if blog.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to update this blog",
+        )
+
     session.add(blog)
-    blog.title = blog_update.title
-    blog.content = blog_update.content
-    # Veritabanından eşleşen blogu aldık ve blog_update içindeki yeni verileri mevcut blog nesnesine atadık
+
+    # Sadece verilen alanları güncelle
+    if getattr(blog_update, "title", None) is not None:
+        blog.title = blog_update.title
+    if getattr(blog_update, "content", None) is not None:
+        blog.content = blog_update.content
+
+    # Güvenli şekilde is_published güncelle
+    if getattr(blog_update, "is_published", None) is not None:
+        blog.is_published = blog_update.is_published
     await session.commit()
     await session.refresh(blog)
     return blog

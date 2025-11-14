@@ -1,11 +1,12 @@
 # blog endpointleri burada olacak
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
+
 from app.database import get_session
 from app.models.models_blog import Blog
 from app.schemas.schemas_blog import BlogCreate, BlogRead, BlogUpdate
-from fastapi import Depends
 from app.routers.auth import get_current_user
 from app.cruds.blog_crud import (
     create_blog_crud,
@@ -14,7 +15,6 @@ from app.cruds.blog_crud import (
     get_my_blogs,
     delete_blog,
 )
-from fastapi import status
 
 router = APIRouter(prefix="/blog", tags=["Blogs"])
 
@@ -30,37 +30,33 @@ async def create_blog(
 
 
 @router.get("/", response_model=list[BlogRead])
-async def get_all_blogs_endpoint(session: AsyncSession = Depends(get_session)):
-    all_blogs = await get_all_blogs(session)
-    return all_blogs
+async def get_all_blogs_endpoint(
+    session: AsyncSession = Depends(get_session),
+    is_published: Optional[bool] = None,
+):
+    query = select(Blog)
+    if is_published is not None:
+        query = query.where(Blog.is_published == is_published)
+    result = await session.execute(query)
+    blogs = result.scalars().all()
+    return blogs
 
 
 @router.put("/{blog_id}", response_model=BlogRead)
 async def update_blog_endpoint(
-    blog_id: int,  # URL’den gelen blog ID’si.
+    blog_id: int,
     blog_update: BlogUpdate,
     session: AsyncSession = Depends(get_session),
-    # kimin istekte bulunduğunu belirliyor.
-    # Bu fonksiyon JWT token’ı çözerek şu anki kullanıcıyı bulur.
     current_user=Depends(get_current_user),
 ):
     updated_blog = await update_blog(session, blog_update, blog_id, current_user.id)
     return updated_blog
 
 
-# Kullanıcı PUT isteği gönderir (URL + body + token)
-# FastAPI endpoint parametreleri ile verileri alır:
-# blog_id → URL
-# blog_update → body
-# current_user → token’dan get_current_user()
-# Endpoint bu verileri CRUD fonksiyonuna geçirir
-# CRUD fonksiyonu veritabanında gerekli güncellemeyi yapar ve sonucu döndürür
-# Endpoint sonucu client’a geri yollar
-
-
 @router.get("/my_blogs", response_model=list[BlogRead])
 async def my_blogs(
-    session: AsyncSession = Depends(get_session), current_user=Depends(get_current_user)
+    session: AsyncSession = Depends(get_session),
+    current_user=Depends(get_current_user),
 ):
     my_blogs_get = await get_my_blogs(session, user_id=current_user.id)
     return my_blogs_get
@@ -76,7 +72,7 @@ async def delete_blog_endpoint(
     return deleted_blog
 
 
-@router.post("/", response_model=BlogRead, status_code=status.HTTP_201_CREATED)
+@router.post("/{blog_id}/publish", status_code=status.HTTP_200_OK)
 async def publish_blog(
     blog_id: int,
     session: AsyncSession = Depends(get_session),
@@ -87,6 +83,7 @@ async def publish_blog(
         raise HTTPException(status_code=404, detail="Blog bulunamadı")
     blog.is_published = True
     await session.commit()
+    await session.refresh(blog)
     return {"message": "Blog yayınlandı", "blog_id": blog_id}
 
 
@@ -94,13 +91,13 @@ async def publish_blog(
 async def create_draft_blog(
     blog: BlogCreate,
     session: AsyncSession = Depends(get_session),
-    current_user: dict = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     new_blog = Blog(
         title=blog.title,
         content=blog.content,
         user_id=current_user.id,
-        is_published=False,  # Taslak olarak kaydediyoruz
+        is_published=False,
     )
     session.add(new_blog)
     await session.commit()
