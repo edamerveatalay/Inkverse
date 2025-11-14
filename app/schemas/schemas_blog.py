@@ -6,6 +6,7 @@ from datetime import datetime
 class BlogCreate(BaseModel):
     title: str
     content: str
+    is_published: Optional[bool] = False
 
 
 class BlogRead(BaseModel):

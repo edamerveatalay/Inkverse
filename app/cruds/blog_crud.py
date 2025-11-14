@@ -8,14 +8,17 @@ from fastapi import HTTPException, status
 
 
 async def create_blog_crud(
-    session: AsyncSession, blog_create: BlogCreate, user_id: int
+    session: AsyncSession,
+    blog_create: BlogCreate,
+    user_id: int,
+    is_published: bool = False,
 ):
     # BlogCreate sınıfından bir blog_create nesnesi oluşturduk onu kullanacağız kodumuzda
     blog = Blog(
         title=blog_create.title,
         user_id=user_id,  # hangi kullanıcıya ait olduğunu belirttik
         content=blog_create.content,
-        is_published=False,
+        is_published=is_published,
     )  # fonksiyonumuzun parametrelerini tanımladık
 
     session.add(blog)

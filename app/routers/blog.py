@@ -25,7 +25,12 @@ async def create_blog(
     session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
-    new_blog = await create_blog_crud(session, blog, user_id=current_user.id)
+    new_blog = await create_blog_crud(
+        session,
+        blog,
+        user_id=current_user.id,
+        is_published=getattr(blog, "is_published", False),
+    )
     return new_blog
 
 
