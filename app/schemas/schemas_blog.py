@@ -9,6 +9,12 @@ class BlogCreate(BaseModel):
     is_published: Optional[bool] = False
 
 
+class BlogUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    is_published: Optional[bool] = None
+
+
 class BlogRead(BaseModel):
     id: int
     title: str
@@ -19,10 +25,3 @@ class BlogRead(BaseModel):
 
     class Config:
         from_attributes = True
-        # gelen verinin direkt python objesine çevrilmesini sağlar
-
-
-class BlogUpdate(BaseModel):  # blog güncellerken değiştirilecek alanlar
-    title: str
-    content: str
-    is_published: Optional[bool] = None

@@ -15,7 +15,6 @@ from app.models.models_user import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
 
 
-# GET işlemleri için router. Sign up kısmının
 get_router = APIRouter(prefix="/auth", tags=["Auth - Sign Up"])
 
 
@@ -25,7 +24,6 @@ async def get_users(session: AsyncSession = Depends(get_session)):
     return users
 
 
-# POST işlemleri için router. Sign up kısmının
 post_router = APIRouter(prefix="/auth", tags=["Auth - Sign Up"])
 
 
@@ -43,10 +41,6 @@ signin_router = APIRouter(prefix="/auth/signin", tags=["Auth - Sign In"])
 
 
 @signin_router.post("/", response_model=Token, status_code=status.HTTP_200_OK)
-# Python decorator olarak, hemen altındaki fonksiyonu FastAPI’ye “bu bir POST endpoint” olduğunu söylemek için kullanır.
-
-
-# POST isteği geldiğinde çalışacak fonksiyon
 async def signin_endpoint(
     user_data: UserLogin, session: AsyncSession = Depends(get_session)
 ):  # endpoint
@@ -66,10 +60,10 @@ ALGORITHM = "HS256"
 async def get_current_user(
     token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)
 ):
-    print(f"[DEBUG] Token geldi: {token}")  # ← Token backend’e geliyor mu kontrol
+    print(f"[DEBUG] Token geldi: {token}")  # Token backend’e geliyor mu kontrol
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(f"[DEBUG] Token payload: {payload}")  # ← Payload doğru mu kontrol
+        print(f"[DEBUG] Token payload: {payload}")  # Payload doğru mu kontrol
 
         email: str = payload.get("sub")
         if email is None:
@@ -79,7 +73,7 @@ async def get_current_user(
             )
 
     except JWTError as e:
-        print(f"[DEBUG] JWT hatası: {e}")  # ← JWT hatası varsa yazdır
+        print(f"[DEBUG] JWT hatası: {e}")  #  JWT hatası varsa yazdır
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -89,11 +83,11 @@ async def get_current_user(
     user = result.scalars().first()
 
     if user is None:
-        print("[DEBUG] Kullanıcı bulunamadı")  # ← kullanıcı yoksa yazdır
+        print("[DEBUG] Kullanıcı bulunamadı")  #  kullanıcı yoksa yazdır
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
 
-    print(f"[DEBUG] Kullanıcı bulundu: {user.email}")  # ← kullanıcı bulunduysa yazdır
+    print(f"[DEBUG] Kullanıcı bulundu: {user.email}")  #  kullanıcı bulunduysa yazdır
     return user

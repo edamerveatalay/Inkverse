@@ -77,34 +77,24 @@ async def delete_blog_endpoint(
     return deleted_blog
 
 
-@router.post("/{blog_id}/publish", status_code=status.HTTP_200_OK)
+@router.post(
+    "/{blog_id}/publish", response_model=BlogRead, status_code=status.HTTP_200_OK
+)
 async def publish_blog(
     blog_id: int,
     session: AsyncSession = Depends(get_session),
+    current_user=Depends(get_current_user),
 ):
-    result = await session.execute(select(Blog).where(Blog.id == blog_id))
+    result = await session.execute(
+        select(Blog).where(Blog.id == blog_id, Blog.user_id == current_user.id)
+    )
     blog = result.scalars().first()
     if not blog:
         raise HTTPException(status_code=404, detail="Blog bulunamadı")
+    if blog.is_published:
+        raise HTTPException(status_code=400, detail="Blog zaten yayınlanmış")
+
     blog.is_published = True
     await session.commit()
     await session.refresh(blog)
-    return {"message": "Blog yayınlandı", "blog_id": blog_id}
-
-
-@router.post("/draft", response_model=BlogRead, status_code=status.HTTP_201_CREATED)
-async def create_draft_blog(
-    blog: BlogCreate,
-    session: AsyncSession = Depends(get_session),
-    current_user=Depends(get_current_user),
-):
-    new_blog = Blog(
-        title=blog.title,
-        content=blog.content,
-        user_id=current_user.id,
-        is_published=False,
-    )
-    session.add(new_blog)
-    await session.commit()
-    await session.refresh(new_blog)
-    return new_blog
+    return blog
