@@ -19,6 +19,7 @@ async def create_blog_crud(
         user_id=user_id,  # hangi kullanıcıya ait olduğunu belirttik
         content=blog_create.content,
         is_published=is_published,
+        tags=blog_create.tags,
     )  # fonksiyonumuzun parametrelerini tanımladık
 
     session.add(blog)
@@ -66,6 +67,9 @@ async def update_blog(
         blog.title = blog_update.title
     if getattr(blog_update, "content", None) is not None:
         blog.content = blog_update.content
+
+    if getattr(blog_update, "tags", None) is not None:
+        blog.tags = blog_update.tags
 
     # Güvenli şekilde is_published güncelle
     if getattr(blog_update, "is_published", None) is not None:
