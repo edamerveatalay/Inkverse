@@ -40,11 +40,15 @@ async def get_all_blogs_endpoint(
     is_published: Optional[bool] = None,
 ):
     query = select(Blog)
-    if is_published is not None:
+
+    # Varsayılan davranış: sadece yayınlanmış blogları getir
+    if is_published is None:
+        query = query.where(Blog.is_published == True)
+    else:
         query = query.where(Blog.is_published == is_published)
+
     result = await session.execute(query)
-    blogs = result.scalars().all()
-    return blogs
+    return result.scalars().all()
 
 
 @router.put("/{blog_id}", response_model=BlogRead)
@@ -98,3 +102,17 @@ async def publish_blog(
     await session.commit()
     await session.refresh(blog)
     return blog
+
+
+@router.get("/drafts", response_model=list[BlogRead])
+async def get_drafts(
+    session: AsyncSession = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    result = await session.execute(
+        select(Blog)
+        .where(Blog.is_published == False, Blog.user_id == current_user.id)
+        .order_by(Blog.created_at.desc())
+    )
+
+    return result.scalars().all()
