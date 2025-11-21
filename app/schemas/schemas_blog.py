@@ -17,6 +17,14 @@ class BlogUpdate(BaseModel):
     tags: Optional[list[str]] = None
 
 
+class BlogUser(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
 class BlogRead(BaseModel):
     id: int
     title: str
@@ -25,6 +33,7 @@ class BlogRead(BaseModel):
     updated_at: datetime
     user_id: int
     tags: list[str]
+    user: Optional[BlogUser] = None
 
     class Config:
         from_attributes = True

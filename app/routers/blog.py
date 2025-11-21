@@ -3,6 +3,8 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
+from sqlalchemy.orm import selectinload
+
 
 from app.database import get_session
 from app.models.models_blog import Blog
@@ -39,7 +41,7 @@ async def get_all_blogs_endpoint(
     session: AsyncSession = Depends(get_session),
     is_published: Optional[bool] = None,
 ):
-    query = select(Blog)
+    query = select(Blog).options(selectinload(Blog.user))
 
     # Varsayılan davranış: sadece yayınlanmış blogları getir
     if is_published is None:
@@ -62,13 +64,11 @@ async def update_blog_endpoint(
     return updated_blog
 
 
-@router.get("/my_blogs", response_model=list[BlogRead])
-async def my_blogs(
-    session: AsyncSession = Depends(get_session),
-    current_user=Depends(get_current_user),
-):
-    my_blogs_get = await get_my_blogs(session, user_id=current_user.id)
-    return my_blogs_get
+async def get_my_blogs(session: AsyncSession, user_id: int):
+    result = await session.execute(
+        select(Blog).where(Blog.user_id == user_id).options(selectinload(Blog.user))
+    )
+    return result.scalars().all()
 
 
 @router.delete("/{blog_id}", response_model=BlogRead)
@@ -113,6 +113,7 @@ async def get_drafts(
         select(Blog)
         .where(Blog.is_published == False, Blog.user_id == current_user.id)
         .order_by(Blog.created_at.desc())
+        .options(selectinload(Blog.user))
     )
 
     return result.scalars().all()

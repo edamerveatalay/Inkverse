@@ -5,6 +5,7 @@ from sqlalchemy import select
 from app.models.models_blog import Blog
 from app.schemas.schemas_blog import BlogCreate, BlogUpdate
 from fastapi import HTTPException, status
+from sqlalchemy.orm import selectinload
 
 
 async def create_blog_crud(
@@ -24,15 +25,17 @@ async def create_blog_crud(
 
     session.add(blog)
     await session.commit()
-    await session.refresh(blog)
+    await session.refresh(blog, attribute_names=["user"])
     return blog
 
 
 async def get_all_blogs(session: AsyncSession):
     # veri almıyor yalnızca veri okuyor o yüzden veritabanı bağlantısı yeterli
-    result = await session.execute(select(Blog).where(Blog.is_published == True))
+    result = await session.execute(
+        select(Blog).where(Blog.is_published == True).options(selectinload(Blog.user))
+    )
     # veritabanına SELECT * FROM blog komutunu gönder ve sonucu al
-    blogs = result.scalars().all()  # Tüm blog nesnelerini al
+    blogs = result.scalars().all()
     return blogs
     # Önce result değişkenine select * from blog yani Blog tablosundaki tüm verileri seçme sorgusu çalıştırılıp sonucu atıyoruz, sonra scalars() ile her satırdaki Blog nesnelerini çıkarıyoruz ve all() ile tablodaki tüm Blog nesnelerini liste olarak döndürüyoruz.
     # blog nesneleri blog sınıfında bulunan veriler yani id, content, title gibi
@@ -80,13 +83,17 @@ async def update_blog(
 
 
 async def get_my_blogs(session: AsyncSession, user_id: int):
-    result = await session.execute(select(Blog).where(Blog.user_id == user_id))
+    result = await session.execute(
+        select(Blog).where(Blog.user_id == user_id).options(selectinload(Blog.user))
+    )
     blogs = result.scalars().all()
     return blogs
 
 
 async def delete_blog(session: AsyncSession, user_id: int, blog_id: int):
-    result = await session.execute(select(Blog).where(Blog.id == blog_id))
+    result = await session.execute(
+        select(Blog).where(Blog.id == blog_id).options(selectinload(Blog.user))
+    )
     blog = result.scalars().first()
     if blog is None:
         raise HTTPException(
