@@ -21,6 +21,7 @@ async def create_blog_crud(
         content=blog_create.content,
         is_published=is_published,
         tags=blog_create.tags,
+        image_url=blog_create.image_url,
     )  # fonksiyonumuzun parametrelerini tanımladık
 
     session.add(blog)
@@ -50,6 +51,7 @@ async def update_blog(
     # güncelleme istenen blog id'si veritabanındaki blog id'siyle eşleşiyorsa:
     # Blog tablosundaki verileri seç bu id'deki veriyi göster.
     blog = result.scalars().first()
+
     if blog is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -73,6 +75,9 @@ async def update_blog(
 
     if getattr(blog_update, "tags", None) is not None:
         blog.tags = blog_update.tags
+
+    if getattr(blog_update, "image_url", None) is not None:
+        blog.image_url = blog_update.image_url
 
     # Güvenli şekilde is_published güncelle
     if getattr(blog_update, "is_published", None) is not None:

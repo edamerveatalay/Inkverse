@@ -22,6 +22,7 @@ class Blog(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     is_published: bool = Field(default=False)
+    image_url: Optional[str] = Field(default=None)
     tags: list[str] = Field(default_factory=list, sa_column=Column(JSON))
 
     # ilişki tanımı

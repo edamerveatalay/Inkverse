@@ -8,6 +8,7 @@ class BlogCreate(BaseModel):
     content: str
     is_published: Optional[bool] = False
     tags: list[str] = []
+    image_url: Optional[str] = None
 
 
 class BlogUpdate(BaseModel):
@@ -15,6 +16,7 @@ class BlogUpdate(BaseModel):
     content: Optional[str] = None
     is_published: Optional[bool] = None
     tags: Optional[list[str]] = None
+    image_url: Optional[str] = None
 
 
 class BlogUser(BaseModel):
@@ -34,6 +36,7 @@ class BlogRead(BaseModel):
     user_id: int
     tags: list[str]
     user: Optional[BlogUser] = None
+    image_url: Optional[str] = None
 
     class Config:
         from_attributes = True
