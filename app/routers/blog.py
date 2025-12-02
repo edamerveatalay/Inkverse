@@ -1,9 +1,11 @@
 # blog endpointleri burada olacak
+import os
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from sqlalchemy.orm import selectinload
+from fastapi import Form, File, UploadFile
 
 
 from app.database import get_session
@@ -56,19 +58,18 @@ async def get_all_blogs_endpoint(
 @router.put("/{blog_id}", response_model=BlogRead)
 async def update_blog_endpoint(
     blog_id: int,
-    blog_update: BlogUpdate,
+    blog_update: BlogUpdate,  # ✅ JSON body olarak al
     session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
-    updated_blog = await update_blog(session, blog_update, blog_id, current_user.id)
-    return updated_blog
-
-
-async def get_my_blogs(session: AsyncSession, user_id: int):
-    result = await session.execute(
-        select(Blog).where(Blog.user_id == user_id).options(selectinload(Blog.user))
+    # blog_crud.py'deki update_blog fonksiyonunu kullan
+    updated_blog = await update_blog(
+        session=session,
+        blog_update=blog_update,
+        blog_id=blog_id,
+        user_id=current_user.id,
     )
-    return result.scalars().all()
+    return updated_blog
 
 
 @router.delete("/{blog_id}", response_model=BlogRead)
@@ -81,24 +82,35 @@ async def delete_blog_endpoint(
     return deleted_blog
 
 
-@router.post(
-    "/{blog_id}/publish", response_model=BlogRead, status_code=status.HTTP_200_OK
-)
+@router.post("/{blog_id}/publish", response_model=BlogRead)
 async def publish_blog(
     blog_id: int,
+    blog_update: BlogUpdate,  # ✅ JSON body
     session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
+    # Önce blog'u bul
     result = await session.execute(
         select(Blog).where(Blog.id == blog_id, Blog.user_id == current_user.id)
     )
     blog = result.scalars().first()
+
     if not blog:
         raise HTTPException(status_code=404, detail="Blog bulunamadı")
-    if blog.is_published:
-        raise HTTPException(status_code=400, detail="Blog zaten yayınlanmış")
 
+    # BlogUpdate'ten gelen alanları güncelle
+    if blog_update.title is not None:
+        blog.title = blog_update.title
+    if blog_update.content is not None:
+        blog.content = blog_update.content
+    if blog_update.tags is not None:
+        blog.tags = blog_update.tags
+    if blog_update.image_url is not None:
+        blog.image_url = blog_update.image_url
+
+    # Yayınla
     blog.is_published = True
+
     await session.commit()
     await session.refresh(blog)
     return blog
