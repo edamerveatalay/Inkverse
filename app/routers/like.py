@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, status
-
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cruds.like_crud import create_like, delete_like, get_like_by_user_and_blog
@@ -16,30 +15,44 @@ async def create_like_endpoint(
     session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
-    blog_id = like.blog_id  # hangi blog beğeniliyor
-    user_id = current_user.id  # beğenen kullanıcı
+    # Daha önce like'lanmış mı kontrol et
+    existing_like = await get_like_by_user_and_blog(
+        session, user_id=current_user.id, blog_id=like.blog_id
+    )
+
+    if existing_like:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bu blog'u zaten beğendiniz",
+        )
+
     new_like = await create_like(session, like, current_user.id)
     return new_like
 
 
-@router.get("/", response_model=LikeRead, status_code=status.HTTP_200_OK)
-async def check_like_status(  # hangi blogun beğenildiğini kontrol et
+@router.get("/check", response_model=dict)
+async def check_like_status(
     blog_id: int,
     session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
     like = await get_like_by_user_and_blog(
-        session, blog_id=blog_id, user_id=current_user.id
+        session, user_id=current_user.id, blog_id=blog_id
     )
-    return like
+
+    return {"is_liked": like is not None, "like_id": like.id if like else None}
 
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/", status_code=status.HTTP_200_OK)
 async def delete_like_endpoint(
     blog_id: int,
     session: AsyncSession = Depends(get_session),
     current_user=Depends(get_current_user),
 ):
-    user_id = current_user.id
-    deleted_like = await delete_like(session, user_id=current_user.id, blog_id=blog_id)
-    return deleted_like
+    try:
+        await delete_like(session, user_id=current_user.id, blog_id=blog_id)
+        return {"message": "Beğeni kaldırıldı"}
+    except HTTPException as e:
+        if e.status_code == 404:
+            return {"message": "Beğeni zaten kaldırılmış"}
+        raise e

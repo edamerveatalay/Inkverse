@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 
@@ -37,6 +37,8 @@ class BlogRead(BaseModel):
     tags: list[str]
     user: Optional[BlogUser] = None
     image_url: Optional[str] = None
+    likes_count: int = Field(default=0, description="Beğeni sayısı")
+    is_liked: bool = Field(default=False, description="Kullanıcı beğenmiş mi?")
 
     class Config:
         from_attributes = True
