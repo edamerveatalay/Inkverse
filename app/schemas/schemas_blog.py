@@ -39,6 +39,7 @@ class BlogRead(BaseModel):
     image_url: Optional[str] = None
     likes_count: int = Field(default=0, description="Beğeni sayısı")
     is_liked: bool = Field(default=False, description="Kullanıcı beğenmiş mi?")
+    is_published: bool = False
 
     class Config:
         from_attributes = True
