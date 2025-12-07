@@ -26,7 +26,10 @@ async def create_like_endpoint(
             detail="Bu blog'u zaten beğendiniz",
         )
 
-    new_like = await create_like(session, like, current_user.id)
+    new_like = await create_like(
+        session=session, like_create=like, user_id=current_user.id
+    )
+
     return new_like
 
 

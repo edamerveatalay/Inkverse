@@ -32,5 +32,5 @@ class Blog(SQLModel, table=True):
         back_populates="blog", sa_relationship_kwargs={"cascade": "all, delete"}
     )
     likes: list["Like"] = Relationship(
-        back_populates="blog", sa_relationship_kwargs={"cascade": "all, delete"}
+        back_populates="blog", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )

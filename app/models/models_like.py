@@ -13,8 +13,8 @@ class Like(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id")
     blog_id: int = Field(foreign_key="blogs.id")
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    # İlişkiler (string referans kullandık, import yapmadık)
     user: Optional["User"] = Relationship(back_populates="likes")
     blog: Optional["Blog"] = Relationship(back_populates="likes")

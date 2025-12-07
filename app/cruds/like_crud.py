@@ -39,11 +39,15 @@ async def delete_like(session: AsyncSession, user_id: int, blog_id: int):
         select(Like).where(Like.user_id == user_id, Like.blog_id == blog_id)
     )
     like = result.scalars().first()
+
     if like is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Like not found",
+            status_code=status.HTTP_404_NOT_FOUND, detail="Like not found"
         )
 
-    session.delete(like)
+    # 👇 Burası sorunluydu — async olduğu için await ZORUNLU
+    await session.delete(like)
+
     await session.commit()
+
+    return {"message": "Beğeni kaldırıldı"}
