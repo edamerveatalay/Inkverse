@@ -50,6 +50,9 @@ async def update_profile(
             detail=f"Profile with id {user_id} not found",
         )
 
+    if profile_update.name is not None:
+        profile.name = profile_update.name
+
     if profile_update.bio is not None:
         profile.bio = profile_update.bio
 

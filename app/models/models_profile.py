@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 class Profile(SQLModel, table=True):
     __tablename__ = "profiles"
 
+    name: Optional[str] = None
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id")
     bio: Optional[str]
