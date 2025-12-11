@@ -29,15 +29,19 @@ async def create_profile_endpoint(
 @router.get("/", response_model=ProfileRead)
 async def get_profile_by_user_endpoint(
     session: AsyncSession = Depends(get_session),
-    current_user=Depends(
-        get_current_user
-    ),  # sayesinde FastAPI otomatik olarak giriş yapmış kullanıcıyı alıyor.
-    # id ile kullanıcıya ait profili sorguluyoruz.
+    current_user=Depends(get_current_user),
 ):
-    by_profile = await get_profile_by_user(
-        session, current_user.id
-    )  # get_profile_by_user: Kullanıcının profilini veritabanından getiriyor.
-    # current_user.id: Şu an API’yi çağıran kullanıcı.
+    by_profile = await get_profile_by_user(session, current_user.id)
+
+    # Eğer profil yoksa otomatik oluştur
+    if not by_profile:
+        new_profile = await create_profile(
+            session,
+            ProfileCreate(bio="", profile_image="", website="", name=""),
+            user_id=current_user.id,
+        )
+        return new_profile
+
     return by_profile
 
 
